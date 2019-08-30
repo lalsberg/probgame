@@ -52,7 +52,26 @@
 	   :points player-points}})
 
 (defn join-room [{room-id :room-id player-name :player-name}]
-	(println (str "player-name " player-name))
-	(println (str "roomID " room-id))
 	(let [player-id (db/create-player (db-connection) room-id player-name 20)]
 		(create-join-room-response player-id 20)))
+
+(defn calculate-chance [room-id]
+	(let [table-card (get-table-card room-id)]
+		(let [deck (get-deck room-id)]
+			(/ (cards-quantity table-card deck) (size deck)))))
+
+(defn abs [n] (max n (- n)))
+
+(defn bet [{player-id :player-id bet :bet}]
+	(println (str "player-id " player-id))
+	(println (str "bet " bet))
+	(let [room-id (get-room-id player-id)]
+
+		(let [chance (calculate-chance player-id)]
+			(let [error-rate (abs (- bet chance))]
+				(let [updated-points (- (get-points player-id) error-rate)]
+					(db/update-player-points player-id updated-points)
+					{:points updated-points
+					 :correct chance
+					 :diff error-rate}
+				)))))
