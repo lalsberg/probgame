@@ -55,14 +55,18 @@
 	(let [player-id (db/create-player (db-connection) room-id player-name 20)]
 		(create-join-room-response player-id 20)))
 
-(defn remove-table-card [deck table-card]
-	(remove deck table-card))
+(defn remove-first [thelist element]
+	(let [[thelist element] (split-with (partial not= element) thelist)] (concat thelist (rest element))))
 
-(defn remove-table-cards [deck table-cards]
-	(map remove-table-card deck table-cards))
+(defn remove-all [thelist toremove]
+	(if (nil? toremove)
+		thelist
+		(let [[current & others] toremove]
+			(remove-all
+				(remove-first thelist current) others))))
 
 (defn get-deck [room-id]
-	(remove-table-cards deck (db/get-table-cards (db-connection) room-id)))
+	(remove-all deck (db/get-table-cards (db-connection) room-id)))
 
 (defn calculate-chance [room-id]
 	(let [table-card (db/get-table-card (db-connection) room-id)]
