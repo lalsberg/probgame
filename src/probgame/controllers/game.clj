@@ -55,8 +55,17 @@
 	(let [player-id (db/create-player (db-connection) room-id player-name 20)]
 		(create-join-room-response player-id 20)))
 
+(defn remove-table-card [deck table-card]
+	(remove deck table-card))
+
+(defn remove-table-cards [deck table-cards]
+	(map remove-table-card deck table-cards))
+
+(defn get-deck [room-id]
+	(remove-table-cards deck (db/get-table-cards (db-connection) room-id)))
+
 (defn calculate-chance [room-id]
-	(let [table-card (get-table-card room-id)]
+	(let [table-card (db/get-table-card (db-connection) room-id)]
 		(let [deck (get-deck room-id)]
 			(/ (cards-quantity table-card deck) (size deck)))))
 
@@ -65,11 +74,11 @@
 (defn bet [{player-id :player-id bet :bet}]
 	(println (str "player-id " player-id))
 	(println (str "bet " bet))
-	(let [room-id (get-room-id player-id)]
 
-		(let [chance (calculate-chance player-id)]
+	(let [player (db/get-player player-id)]
+		(let [chance (calculate-chance (:room_id player))]
 			(let [error-rate (abs (- bet chance))]
-				(let [updated-points (- (get-points player-id) error-rate)]
+				(let [updated-points (- (:points player) error-rate)]
 					(db/update-player-points player-id updated-points)
 					{:points updated-points
 					 :correct chance
