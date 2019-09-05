@@ -66,7 +66,7 @@
 				(remove-first thelist current) others))))
 
 (defn get-deck [room-id]
-	(remove-all (logic/initial-deck) (db/get-table-cards (db-connection) room-id)))
+	(remove-all logic/initial-deck (db/get-table-cards (db-connection) room-id)))
 
 (defn count-cards [table-card deck]
 	(count 
@@ -75,7 +75,7 @@
 (defn calculate-chance [room-id]
 	(let [table-card (db/get-table-card (db-connection) room-id)]
 		(let [deck (get-deck room-id)]
-			(/ (count-cards table-card deck) (count deck)))))
+			(/ (+ 1 (count-cards table-card deck)) (count deck)))))
 
 (defn abs [n] (max n (- n)))
 
@@ -83,11 +83,11 @@
 	(println (str "player-id " player-id))
 	(println (str "bet " bet))
 
-	(let [player (db/get-player player-id)]
-		(let [chance (calculate-chance (:room_id player))]
+	(let [player (db/get-player (db-connection) player-id)]
+		(let [chance (calculate-chance	(:room_id player))]
 			(let [error-rate (abs (- bet chance))]
 				(let [updated-points (- (:points player) error-rate)]
-					(db/update-player-points player-id updated-points)
+					(db/update-player-points (db-connection) player-id updated-points)
 					{:points updated-points
 					 :correct chance
 					 :diff error-rate}

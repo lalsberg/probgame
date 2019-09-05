@@ -17,7 +17,7 @@
 			(jdbc/insert! conn :table_card {:room_id room-id :card card}))))
 
 (defn update-player-points [conn player-id points]
-			(jdbc/update conn :player {:points points} ["player_id = ?" player-id]))
+			(jdbc/update! conn :player {:points points} ["id = ?" player-id]))
 
 (defn get-player [conn player-id]
 	(jdbc/query conn ["select * from player where id = ?" player-id] {:result-set-fn first}))
