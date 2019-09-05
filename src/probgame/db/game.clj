@@ -16,11 +16,14 @@
 		(first
 			(jdbc/insert! conn :table_card {:room_id room-id :card card}))))
 
+(defn update-player-points [conn player-id points]
+			(jdbc/update conn :player {:points points} ["player_id = ?" player-id]))
+
 (defn get-player [conn player-id]
 	(jdbc/query conn ["select * from player where id = ?" player-id] {:result-set-fn first}))
 
 (defn get-table-card [conn room-id]
-	(jdbc/query conn ["select * from table_card where room_id = ? order by id desc limit 1" room_id] {:result-set-fn first}))
+	(jdbc/query conn ["select * from table_card where room_id = ? order by id desc limit 1" room-id] {:result-set-fn first}))
 
 (defn get-table-cards [conn room-id]
-	(jdbc/query conn ["select * from table_card where room_id = ?" room_id]))
+	(jdbc/query conn ["select * from table_card where room_id = ?" room-id]))

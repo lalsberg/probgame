@@ -66,12 +66,16 @@
 				(remove-first thelist current) others))))
 
 (defn get-deck [room-id]
-	(remove-all deck (db/get-table-cards (db-connection) room-id)))
+	(remove-all (logic/initial-deck) (db/get-table-cards (db-connection) room-id)))
+
+(defn count-cards [table-card deck]
+	(count 
+		(filter #(= table-card %) deck)))
 
 (defn calculate-chance [room-id]
 	(let [table-card (db/get-table-card (db-connection) room-id)]
 		(let [deck (get-deck room-id)]
-			(/ (cards-quantity table-card deck) (size deck)))))
+			(/ (count-cards table-card deck) (count deck)))))
 
 (defn abs [n] (max n (- n)))
 
