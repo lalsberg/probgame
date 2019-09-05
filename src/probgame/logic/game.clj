@@ -8,3 +8,17 @@
 
 (defn take-card [deck]
 	(first (shuffle deck)))
+
+(defn print-card! [card]
+	"
+	 ┌─────────┐
+ │{}        │
+ │         │
+ │         │
+ │    {}    │
+ │         │
+ │         │
+ │        {}│
+ └─────────┘
+	")
+

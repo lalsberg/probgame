@@ -1,7 +1,7 @@
 (ns probgame.controllers.game
 	(:import (com.mchange.v2.c3p0 ComboPooledDataSource))
 	(:require [probgame.logic.game :as logic]
-						[probgame.db.game :as db]
+						[probgame.db.db :as db]
 						[clojure.java.jdbc :as jdbc]))
 
 ; tirar isso daqui start
@@ -79,16 +79,32 @@
 
 (defn abs [n] (max n (- n)))
 
+(defn player-didnt-bet-yet? [player-id]
+	(println (str "has bet " (db/has-bet (db-connection) player-id)))
+	(not (db/has-bet (db-connection) player-id)))
+
+(defn all-players-bet [room-id]
+	(println (str "all-players-bet " (db/all-players-bet (db-connection) room-id)))
+	(db/all-players-bet (db-connection) room-id))
+
 (defn bet [{player-id :player-id bet :bet}]
 	(println (str "player-id " player-id))
 	(println (str "bet " bet))
 
-	(let [player (db/get-player (db-connection) player-id)]
-		(let [chance (calculate-chance	(:room_id player))]
-			(let [error-rate (abs (- bet chance))]
-				(let [updated-points (- (:points player) error-rate)]
-					(db/update-player-points (db-connection) player-id updated-points)
-					{:points updated-points
-					 :correct chance
-					 :diff error-rate}
-				)))))
+	(if (player-didnt-bet-yet? player-id)
+		(let [player (db/get-player (db-connection) player-id)]
+			(let [chance (calculate-chance	(:room_id player))]
+				(let [error-rate (abs (- bet chance))]
+					(let [updated-points (- (:points player) error-rate)]
+						(db/save-bet (db-connection) player-id)
+						(db/update-player-points (db-connection) player-id updated-points)
+
+						(if (all-players-bet (:room_id player))
+							(let [card-taken (logic/take-card (get-deck (:room_id player)))]
+								(db/save-table-card (db-connection) (:room_id player) card-taken)
+								(db/remove-round-bets (db-connection) (:room_id player))))
+							
+						{:points updated-points
+						 :correct chance
+						 :diff error-rate}
+					))))))
